@@ -1,4 +1,5 @@
-public class VPNServer {
+import java.net.ServerSocket;
+
     import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
@@ -56,4 +57,4 @@ import java.util.concurrent.*;
         }
     }
 
-}
+
