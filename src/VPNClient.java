@@ -1,39 +1,41 @@
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class VPNClient {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 12345;
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
+    private static final int SERVER_PORT = 4000;
 
-    public VPNClient() throws IOException {
-        socket = new Socket(SERVER_IP, SERVER_PORT);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
-    }
+    public void start(SecretKey secretKey) {
+        try (Socket socket = new Socket(SERVER_IP, SERVER_PORT);
+             OutputStream out = socket.getOutputStream();
+             InputStream in = socket.getInputStream()) {
 
-    public void start() {
-        try {
-            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-            String message;
-            while (true) {
-                System.out.print("Enter message for server: ");
-                message = userInput.readLine();
-                out.println(message);  // Send message to server
+            // Encrypt data and send to the server
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            byte[] encryptedData = cipher.doFinal("Hello from Client".getBytes());
+            out.write(encryptedData);
 
-                String serverResponse = in.readLine();  // Receive response from server
-                System.out.println("Server response: " + serverResponse);
-            }
-        } catch (IOException e) {
+            // Receive and decrypt server response
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            byte[] buffer = new byte[1024];
+            int bytesRead = in.read(buffer);
+            byte[] decryptedData = cipher.doFinal(buffer, 0, bytesRead);
+
+            System.out.println("Decrypted Response: " + new String(decryptedData));
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        VPNClient client = new VPNClient();
-        client.start();
+    public static void main(String[] args) throws Exception {
+        // Key should be securely shared between client and server in real-world use
+        SecretKey secretKey = KeyGenerator.getInstance("AES").generateKey();
+        new VPNClient().start(secretKey);
     }
 }
-

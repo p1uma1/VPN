@@ -1,60 +1,63 @@
+import java.io.*;
 import java.net.ServerSocket;
+import java.net.Socket;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
-    import java.io.*;
-import java.net.*;
-import java.util.concurrent.*;
+public class VPNServer {
+    private static final int PORT = 4000;
+    private SecretKey secretKey;
 
-    public class VPNServer {
-        private static final int PORT = 12345;
-        private ServerSocket serverSocket;
-        private ExecutorService executor;
+    public VPNServer() throws Exception {
+        // Generate AES key
+        secretKey = KeyGenerator.getInstance("AES").generateKey();
+    }
 
-        public VPNServer() throws IOException {
-            serverSocket = new ServerSocket(PORT);
-            executor = Executors.newCachedThreadPool();  // For handling multiple clients
-        }
+    public void start() throws IOException {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("VPN Server is running on port " + PORT);
 
-        public void start() {
-            System.out.println("VPN Server started on port " + PORT);
             while (true) {
-                try {
-                    Socket clientSocket = serverSocket.accept();
-                    System.out.println("Client connected: " + clientSocket.getInetAddress());
-                    // Handle the client in a separate thread
-                    executor.submit(new ClientHandler(clientSocket));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-        public static void main(String[] args) throws IOException {
-            VPNServer server = new VPNServer();
-            server.start();
-        }
-    }
-
-    class ClientHandler implements Runnable {
-        private Socket clientSocket;
-
-        public ClientHandler(Socket socket) {
-            this.clientSocket = socket;
-        }
-
-        @Override
-        public void run() {
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
-                // Handle communication and encryption here
-                String clientMessage;
-                while ((clientMessage = in.readLine()) != null) {
-                    System.out.println("Received from client: " + clientMessage);
-                    out.println("Server response: " + clientMessage); // Respond back to client
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+                // Start a thread for each client
+                new Thread(() -> handleClient(clientSocket)).start();
             }
         }
     }
 
+    private void handleClient(Socket clientSocket) {
+        try (InputStream in = clientSocket.getInputStream();
+             OutputStream out = clientSocket.getOutputStream()) {
 
+            // Receive and decrypt client data
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+
+            byte[] buffer = new byte[1024];
+            int bytesRead = in.read(buffer);
+            byte[] decryptedData = cipher.doFinal(buffer, 0, bytesRead);
+
+            System.out.println("Decrypted Data: " + new String(decryptedData));
+
+            // Encrypt and send response to the client
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            byte[] response = cipher.doFinal("Hello from Server".getBytes());
+            out.write(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public SecretKey getSecretKey() {
+        return secretKey;
+    }
+
+    public static void main(String[] args) throws Exception {
+        VPNServer server = new VPNServer();
+        server.start();
+    }
+}
