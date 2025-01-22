@@ -6,12 +6,13 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 public class VPNServer {
-    private static final int PORT = 4000;
+    private static final int PORT = 5000;
     private SecretKey secretKey;
 
     public VPNServer() throws Exception {
         // Generate AES key
         secretKey = KeyGenerator.getInstance("AES").generateKey();
+        saveKey(secretKey); // Save key to share with the client
     }
 
     public void start() throws IOException {
@@ -52,8 +53,10 @@ public class VPNServer {
         }
     }
 
-    public SecretKey getSecretKey() {
-        return secretKey;
+    private void saveKey(SecretKey key) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream("secretKey.key")) {
+            fos.write(key.getEncoded());
+        }
     }
 
     public static void main(String[] args) throws Exception {
