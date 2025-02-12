@@ -5,14 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="696cd3ee-6b3a-499d-b81d-d1622c133a6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/client/VPNClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/security/SSLUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/server/VPNServer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tun_handler.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/secretKey.key" beforeDir="false" afterPath="$PROJECT_DIR$/secretKey.key" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VPNClient.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/VPNServer.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
